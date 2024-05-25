@@ -45,6 +45,7 @@ BEGIN_MESSAGE_MAP(CSettingDlg, CDialogEx)
     ON_NOTIFY(NM_CLICK, IDC_DataFormatList, &CSettingDlg::OnClickDataformatlist)
     ON_WM_LBUTTONDOWN()
     ON_BN_CLICKED(IDC_InputDataset, &CSettingDlg::OnBnClickedInputdataset)
+	ON_BN_CLICKED(IDC_UseHexa, &CSettingDlg::OnBnClickedUsehexa)
 END_MESSAGE_MAP()
 
 
@@ -242,12 +243,12 @@ void CSettingDlg::OnClickDataformatlist(NMHDR *pNMHDR, LRESULT *pResult)
         str.Format("");
     }
     SetDlgItemText(IDC_CurSelectItem, str);
-    SelectItem();
+	ShowInputControl();
     *pResult = 0;
 }
 
 
-void CSettingDlg::SelectItem() {
+void CSettingDlg::ShowInputControl() {
     // Hide all control
     //GetDligItem
     GetDlgItem(m_IDC_Text)->ShowWindow(FALSE);
@@ -255,6 +256,7 @@ void CSettingDlg::SelectItem() {
     GetDlgItem(IDC_InputDataset)->ShowWindow(FALSE);
     GetDlgItem(IDC_Datatype)->ShowWindow(FALSE);
     GetDlgItem(IDC_Checksum)->ShowWindow(FALSE);
+	GetDlgItem(IDC_UseHexa)->ShowWindow(FALSE);
 
     if (m_iSelectItem > -1)
     {
@@ -325,10 +327,19 @@ void CSettingDlg::ShowHeaderControl() {
         SetDlgItemText(m_IDC_Text, str);
         GetDlgItem(m_IDC_Text)->MoveWindow(px, py, sx, sy, 1);
 
-        px += (sx + gx);
-        py -= 2;
+		px += (sx + gx + 20);
+		sx = 50;
+		py -= 2;
+
+		GetDlgItem(IDC_UseHexa)->MoveWindow(px, py, sx, sy, 1);
+		GetDlgItem(IDC_UseHexa)->ShowWindow(TRUE);
+
+        px += (sx + gx);        
         sx = 50; 
-        str.Format("%d", pMain->m_Dataset.pHeader[idx]);
+		if (IsDlgButtonChecked(IDC_UseHexa))
+			str.Format("0x%X", pMain->m_Dataset.pHeader[idx]);
+		else 
+			str.Format("%d", pMain->m_Dataset.pHeader[idx]);
         SetDlgItemText(m_IDC_Value, str);
         GetDlgItem(m_IDC_Value)->MoveWindow(px, py, sx, sy, 1);
         px += sx + gx;
@@ -487,58 +498,67 @@ void CSettingDlg::ShowChecksumControl() {
 
 
 void CSettingDlg::ShowTailControl() {
-    CString str;
-    int px = DRAW_START_X;
-    int py = DRAW_START_Y;
-    int gx = 5;
+	CString str;
+	int px = DRAW_START_X;
+	int py = DRAW_START_Y;
+	int gx = 5;
 
-    int sx;
-    int sy = 17;
-    int nShow = 0;
+	int sx;
+	int sy = 17;
+	int nShow = 0;
 
-    if (m_iSelectItem == 0)
-    {
-        nShow = 1;
-        sx = 75;
-        str.Format("nTail");
-        SetDlgItemText(m_IDC_Text, str);
-        GetDlgItem(m_IDC_Text)->MoveWindow(px, py, sx, sy, 1);
+	if (m_iSelectItem == 0)
+	{
+		nShow = 1;
+		sx = 75;
+		str.Format("nTail");
+		SetDlgItemText(m_IDC_Text, str);
+		GetDlgItem(m_IDC_Text)->MoveWindow(px, py, sx, sy, 1);
 
-        px += (sx + gx);
-        py -= 2;
-        sx = 50;
-        str.Format("%d", pMain->m_Dataset.nTail);
-        SetDlgItemText(m_IDC_Value, str);
-        GetDlgItem(m_IDC_Value)->MoveWindow(px, py, sx, sy, 1);
-        px += sx + gx;
-    }
-    else {
-        nShow = 1;
-        sx = 75;
-        int idx = m_iSelectItem - 1;
-        str.Format("Tail[%d]", idx);
-        SetDlgItemText(m_IDC_Text, str);
-        GetDlgItem(m_IDC_Text)->MoveWindow(px, py, sx, sy, 1);
+		px += (sx + gx);
+		py -= 2;
+		sx = 50;
+		str.Format("%d", pMain->m_Dataset.nTail);
+		SetDlgItemText(m_IDC_Value, str);
+		GetDlgItem(m_IDC_Value)->MoveWindow(px, py, sx, sy, 1);
+		px += sx + gx;
+	}
+	else {
+		nShow = 1;
+		sx = 75;
+		int idx = m_iSelectItem - 1;
+		str.Format("Tail[%d]", idx);
+		SetDlgItemText(m_IDC_Text, str);
+		GetDlgItem(m_IDC_Text)->MoveWindow(px, py, sx, sy, 1);
 
-        px += (sx + gx);
-        py -= 2;
-        sx = 50;
-        str.Format("%d", pMain->m_Dataset.pTail[idx]);
-        SetDlgItemText(m_IDC_Value, str);
-        GetDlgItem(m_IDC_Value)->MoveWindow(px, py, sx, sy, 1);
-        px += sx + gx;
-    }
+		px += (sx + gx + 20);
+		sx = 50;
+		py -= 2;
 
-    // Input Button
-    GetDlgItem(IDC_InputDataset)->MoveWindow(px + 10, py, sx, sy, 1);
+		GetDlgItem(IDC_UseHexa)->MoveWindow(px, py, sx, sy, 1);
+		GetDlgItem(IDC_UseHexa)->ShowWindow(TRUE);
 
-    // Show Controls
-    for (int i = 0; i < nShow; i++)
-    {
-        GetDlgItem(m_IDC_Text)->ShowWindow(TRUE);
-        GetDlgItem(m_IDC_Value)->ShowWindow(TRUE);
-    }
-    GetDlgItem(IDC_InputDataset)->ShowWindow(TRUE);
+		px += (sx + gx);
+		sx = 50;
+		if (IsDlgButtonChecked(IDC_UseHexa))
+			str.Format("0x%X", pMain->m_Dataset.pTail[idx]);
+		else
+			str.Format("%d", pMain->m_Dataset.pTail[idx]);
+		SetDlgItemText(m_IDC_Value, str);
+		GetDlgItem(m_IDC_Value)->MoveWindow(px, py, sx, sy, 1);
+		px += sx + gx;
+	}
+
+	// Input Button
+	GetDlgItem(IDC_InputDataset)->MoveWindow(px + 10, py, sx, sy, 1);
+
+	// Show Controls
+	for (int i = 0; i < nShow; i++)
+	{
+		GetDlgItem(m_IDC_Text)->ShowWindow(TRUE);
+		GetDlgItem(m_IDC_Value)->ShowWindow(TRUE);
+	}
+	GetDlgItem(IDC_InputDataset)->ShowWindow(TRUE);
 }
 
 
@@ -588,7 +608,18 @@ void CSettingDlg::OnBnClickedInputdataset()
         }
         else {
             int idx = m_iSelectItem - 1;
-            int value = GetDlgItemInt(m_IDC_Value);
+			int value;
+			if (IsDlgButtonChecked(IDC_UseHexa))
+			{
+				CString str;
+				GetDlgItemText(m_IDC_Value, str);
+				value = pMain->Hex2Dec(str);
+			}
+			else
+			{
+				value = GetDlgItemInt(m_IDC_Value);
+			}
+
             if (value >= 0 && value <= 255 && value != pMain->m_Dataset.pHeader[idx])
             {
                 CString strValue, strItem;
@@ -715,18 +746,28 @@ void CSettingDlg::OnBnClickedInputdataset()
                 pMain->SetReg_RegistryData("Data\\Tail", "nTail", strValue);
             }
         }
-        else {
-            int idx = m_iSelectItem - 1;
-            int value = GetDlgItemInt(m_IDC_Value);
-            if (value >= 0 && value <= 255 && value != pMain->m_Dataset.pTail[idx])
-            {
-                CString strValue, strItem;
-                pMain->m_Dataset.pTail[idx] = value;
-                strItem.Format("Tail_%d", idx);
-                strValue.Format("%d", value);
-                pMain->SetReg_RegistryData("Data\\Tail\\Data", strItem, strValue);
-            }
-        }
+		else {
+			int idx = m_iSelectItem - 1;
+			int value;
+			if (IsDlgButtonChecked(IDC_UseHexa))
+			{
+				CString str;
+				GetDlgItemText(m_IDC_Value, str);
+				value = pMain->Hex2Dec(str);
+			}
+			else
+			{
+				value = GetDlgItemInt(m_IDC_Value);
+			}
+			if (value >= 0 && value <= 255 && value != pMain->m_Dataset.pTail[idx])
+			{
+				CString strValue, strItem;
+				pMain->m_Dataset.pTail[idx] = value;
+				strItem.Format("Tail_%d", idx);
+				strValue.Format("%d", value);
+				pMain->SetReg_RegistryData("Data\\Tail\\Data", strItem, strValue);
+			}
+		}
         break;
     }    
     ShowHeadItem();
@@ -906,5 +947,27 @@ void CSettingDlg::ShowHeadItem(void)
         VERIFY(m_DataList.SetColumnWidth(i, LVSCW_AUTOSIZE_USEHEADER));
     }
 
-    SelectItem();
+	ShowInputControl();
+}
+
+
+void CSettingDlg::OnBnClickedUsehexa()
+{
+	// Value Change
+	
+	CString strNew;
+	int value;
+	if (IsDlgButtonChecked(IDC_UseHexa))
+	{
+		value = GetDlgItemInt(IDC_value0);
+		strNew.Format("0x%X", value);
+	}
+	else
+	{		
+		CString strPre;
+		GetDlgItemText(IDC_value0, strPre);
+		value = pMain->Hex2Dec(strPre);
+		strNew.Format("%d", value);
+	}
+	SetDlgItemText(IDC_value0, strNew);
 }

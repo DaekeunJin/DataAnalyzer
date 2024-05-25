@@ -50,7 +50,7 @@ public:
     int CheckInputData();
     void SaveInputData();
     afx_msg void OnClickDataformatlist(NMHDR *pNMHDR, LRESULT *pResult);
-    void SelectItem();
+    void ShowInputControl();
 
     int m_IDC_Text;
     int m_IDC_Value;
@@ -63,5 +63,6 @@ public:
 
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
     afx_msg void OnBnClickedInputdataset();
+	afx_msg void OnBnClickedUsehexa();
 };
 

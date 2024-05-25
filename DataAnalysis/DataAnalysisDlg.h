@@ -42,4 +42,7 @@ public:
     void SetData(int nData, int nValue, int nMath, bool bUpdate = TRUE);
     void GetReg_HeaderData();
     virtual BOOL DestroyWindow();
+
+	// Common function
+	int Hex2Dec(CString str);
 };

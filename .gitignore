@@ -1,0 +1,12 @@
+﻿################################################################################
+# 이 .gitignore 파일은 Microsoft(R) Visual Studio에서 자동으로 만들어졌습니다.
+################################################################################
+
+/.vs/DataAnalysis/v15
+/.vs/DataAnalyzer/v15
+/.vs/VSWorkspaceState.json
+/.vs/ProjectSettings.json
+/.vs
+/x64/Release/DataAnalysis.pdb
+/x64/Release/DataAnalysis.ipdb
+/x64/Release/DataAnalysis.iobj

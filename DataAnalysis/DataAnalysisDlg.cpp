@@ -431,6 +431,33 @@ BOOL CDataAnalysisDlg::DestroyWindow()
     }
 
     str.Format("%s %p", str, m_pData);
-    AfxMessageBox(str);
+    //AfxMessageBox(str);
     return CDialogEx::DestroyWindow();
+}
+
+
+int CDataAnalysisDlg::Hex2Dec(CString str)
+{
+	int len = str.GetLength();
+	int value = 0;
+	for (int i = 0; i < len; i++) 
+	{
+		char ch = str.GetAt(i);
+		if (ch >= '0' && ch <= '9') 
+		{
+			value <<= 4;
+			value += ch - '0';
+		}
+		else if (ch >= 'a' && ch <= 'f') 
+		{
+			value <<= 4;
+			value += ch - 'a' + 10;
+		}
+		else if (ch >= 'A' && ch <= 'F') 
+		{
+			value <<= 4;
+			value += ch - 'A' + 10;
+		}
+	}
+	return value;
 }
