@@ -1,12 +1,7 @@
-ï»¿################################################################################
-# ì´ .gitignore íŒŒì¼ì€ Microsoft(R) Visual Studioì—ì„œ ìë™ìœ¼ë¡œ ë§Œë“¤ì–´ì¡ŒìŠµë‹ˆë‹¤.
+################################################################################
+# ÀÌ .gitignore ÆÄÀÏÀº Microsoft(R) Visual Studio¿¡¼­ ÀÚµ¿À¸·Î ¸¸µé¾îÁ³½À´Ï´Ù.
 ################################################################################
 
-/.vs/DataAnalysis/v15
-/.vs/DataAnalyzer/v15
-/.vs/VSWorkspaceState.json
-/.vs/ProjectSettings.json
-/.vs
-/x64/Release/DataAnalysis.pdb
-/x64/Release/DataAnalysis.ipdb
-/x64/Release/DataAnalysis.iobj
+/.vs/
+/x64/
+/DataAnalysis/x64/

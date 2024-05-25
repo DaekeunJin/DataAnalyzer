@@ -297,8 +297,6 @@ void CDataAnalysisDlg::GetDataFormat_fromReg()
 
 void CDataAnalysisDlg::OnBnClickedTestbutton() 
 {
-    
-
 }
 
 

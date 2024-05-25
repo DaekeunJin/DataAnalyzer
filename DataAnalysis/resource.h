@@ -9,7 +9,6 @@
 #define IDC_ReqSettingDlg               1000
 #define IDC_Get_Default_DataSet         1000
 #define IDC_TestButton                  1001
-#define IDC_Get_Default_DataSet2        1002
 #define IDC_SetDataSet                  1002
 #define IDC_DataFormatList              1004
 #define IDC_DataItem0                   1005

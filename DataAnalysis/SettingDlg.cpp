@@ -46,6 +46,7 @@ BEGIN_MESSAGE_MAP(CSettingDlg, CDialogEx)
     ON_WM_LBUTTONDOWN()
     ON_BN_CLICKED(IDC_InputDataset, &CSettingDlg::OnBnClickedInputdataset)
 	ON_BN_CLICKED(IDC_UseHexa, &CSettingDlg::OnBnClickedUsehexa)
+	ON_BN_CLICKED(IDC_SetDataSet, &CSettingDlg::OnBnClickedSetdataset)
 END_MESSAGE_MAP()
 
 
@@ -175,10 +176,7 @@ void CSettingDlg::Get_InitData(void)
 
 void CSettingDlg::OnBnClickedSavesetting()
 {
-    if (CheckInputData()) 
-    {
-        SaveInputData();
-    }
+	OnBnClickedSetdataset();
 }
 
 int CSettingDlg::CheckInputData()
@@ -195,10 +193,7 @@ int CSettingDlg::CheckInputData()
 
     int totalSize = GetDlgItemInt(IDC_N_MIN_DATA) * 8 * (GetDlgItemInt(IDC_N_MIN_VALUE) + GetDlgItemInt(IDC_N_MIN_MATH));
     if (totalSize > 500000000) errCode = 7;
-
-
-
-
+	
     if (errCode > 0)
     {
         CString str;
@@ -207,21 +202,6 @@ int CSettingDlg::CheckInputData()
         return false;
     }
     return true;
-}
-
-void CSettingDlg::SaveInputData()
-{
-    CString strValue;
-
-    // Dataset 
-    strValue.Format("%d", GetDlgItemInt(IDC_N_MIN_DATA));
-    pMain->SetReg_RegistryData("Data", "Default_N_Data", strValue);
-
-    strValue.Format("%d", GetDlgItemInt(IDC_N_MIN_VALUE));
-    pMain->SetReg_RegistryData("Data\\Value", "nValue", strValue);
-
-    strValue.Format("%d", GetDlgItemInt(IDC_N_MIN_MATH));
-    pMain->SetReg_RegistryData("Data", "Default_N_Math", strValue);
 }
 
 void CSettingDlg::OnClickDataformatlist(NMHDR *pNMHDR, LRESULT *pResult)
@@ -974,4 +954,22 @@ void CSettingDlg::OnBnClickedUsehexa()
 		strNew.Format("%d", value);
 	}
 	SetDlgItemText(IDC_value0, strNew);
+}
+
+
+void CSettingDlg::OnBnClickedSetdataset()
+{
+	if (CheckInputData())
+	{
+		CString strValue;
+		// Dataset 
+		strValue.Format("%d", GetDlgItemInt(IDC_N_MIN_DATA));
+		pMain->SetReg_RegistryData("Data", "Default_N_Data", strValue);
+
+		strValue.Format("%d", GetDlgItemInt(IDC_N_MIN_VALUE));
+		pMain->SetReg_RegistryData("Data\\Value", "nValue", strValue);
+
+		strValue.Format("%d", GetDlgItemInt(IDC_N_MIN_MATH));
+		pMain->SetReg_RegistryData("Data", "Default_N_Math", strValue);
+	}
 }
