@@ -5,8 +5,8 @@
 
 // CSettingDlg 대화 상자
 
-#define DRAW_START_X 10
-#define DRAW_START_Y 150
+#define DRAW_START_X 233
+#define DRAW_START_Y 162
 
 
 class CSettingDlg : public CDialogEx

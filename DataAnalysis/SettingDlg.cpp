@@ -222,10 +222,6 @@ void CSettingDlg::SaveInputData()
 
     strValue.Format("%d", GetDlgItemInt(IDC_N_MIN_MATH));
     pMain->SetReg_RegistryData("Data", "Default_N_Math", strValue);
-
-
-
-
 }
 
 void CSettingDlg::OnClickDataformatlist(NMHDR *pNMHDR, LRESULT *pResult)
@@ -283,6 +279,15 @@ void CSettingDlg::ShowInputControl() {
             break;
         }
     }
+	
+	if (m_iSelectItem == -1)
+	{
+		GetDlgItem(IDC_DataFormatList)->MoveWindow(235, 41, 687 - 235, 181 - 41, 1);
+	}
+	else
+	{
+		GetDlgItem(IDC_DataFormatList)->MoveWindow(235, 41, 687 - 235, 154 - 41, 1);
+	}
 }
 
 void CSettingDlg::OnLButtonDown(UINT nFlags, CPoint point)
@@ -301,7 +306,7 @@ void CSettingDlg::ShowHeaderControl() {
   
     int sx;
     int sy = 17;
-    int nShow = 0;
+    int nShow = 0;	
 
     if (m_iSelectItem == 0)
     {
@@ -949,7 +954,6 @@ void CSettingDlg::ShowHeadItem(void)
 
 	ShowInputControl();
 }
-
 
 void CSettingDlg::OnBnClickedUsehexa()
 {
