@@ -188,6 +188,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Colorlistctrl.h" />
+    <ClInclude Include="CommThread.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="DataAnalysis.h" />
     <ClInclude Include="DataAnalysisDlg.h" />
@@ -200,6 +201,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ColorListCtrl.cpp" />
+    <ClCompile Include="CommThread.cpp" />
     <ClCompile Include="DataAnalysis.cpp" />
     <ClCompile Include="DataAnalysisDlg.cpp" />
     <ClCompile Include="pch.cpp">

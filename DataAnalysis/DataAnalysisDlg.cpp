@@ -14,13 +14,14 @@
 #define new DEBUG_NEW
 #endif
 
-
-// CDataAnalysisDlg 대화 상자
-
-
+// variables for CommThread
+HWND hCommWnd;
+CString strPortname;
 
 CDataAnalysisDlg::CDataAnalysisDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_DataAnalysisDlg, pParent)
+	, m_iSerialPort(-1)
+	, m_strSerial(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -28,18 +29,24 @@ CDataAnalysisDlg::CDataAnalysisDlg(CWnd* pParent /*=nullptr*/)
 void CDataAnalysisDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_SERIAL_PORT, m_cSerialPort);
+	DDX_Control(pDX, IDC_BAUD_RATE, m_cBaudRate);
 }
 
 BEGIN_MESSAGE_MAP(CDataAnalysisDlg, CDialogEx)
 	ON_WM_PAINT()
+	ON_MESSAGE(WM_COMM_READ1, OnCommunication) //추가
 	ON_WM_QUERYDRAGICON()
     ON_BN_CLICKED(IDC_ReqSettingDlg, &CDataAnalysisDlg::OnBnClickedReqsettingdlg)
     ON_BN_CLICKED(IDC_TestButton, &CDataAnalysisDlg::OnBnClickedTestbutton)
+	ON_BN_CLICKED(IDC_BTN_PORT_OPEN, &CDataAnalysisDlg::OnBnClickedBtnPortOpen)
+	ON_BN_CLICKED(IDC_BTN_PORT_CLOSE, &CDataAnalysisDlg::OnBnClickedBtnPortClose)
+	ON_CBN_SELCHANGE(IDC_SERIAL_PORT, &CDataAnalysisDlg::OnCbnSelchangeSerialPort)
+	ON_CBN_SELCHANGE(IDC_BAUD_RATE, &CDataAnalysisDlg::OnCbnSelchangeBaudRate)
 END_MESSAGE_MAP()
 
 
 // CDataAnalysisDlg 메시지 처리기
-
 BOOL CDataAnalysisDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
@@ -48,9 +55,14 @@ BOOL CDataAnalysisDlg::OnInitDialog()
 	//  프레임워크가 이 작업을 자동으로 수행합니다.
 	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
+	hCommWnd = m_hWnd;
+
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
     GetDataFormat_fromReg();
+	OnSetfocusSerialPort();
+	m_cBaudRate.SetCurSel(7);
+	m_iBaudRate = 7;
 
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
@@ -458,4 +470,275 @@ int CDataAnalysisDlg::Hex2Dec(CString str)
 		}
 	}
 	return value;
+}
+
+void CDataAnalysisDlg::OnBnClickedBtnPortOpen()
+{
+	OnBnClickedBtnPortClose();
+
+	CString PortName;
+
+	if (m_ComuPort.m_bConnected == TRUE)
+	{
+		OnBnClickedBtnPortClose();
+		Wait(100);
+	}
+
+	m_iSerialPort = m_cSerialPort.GetCurSel();
+	if (m_iSerialPort == -1) 
+	{
+		PortName.Format("사용 가능한 Port(device)가 없습니다.");
+		AfxMessageBox(PortName);
+		return;
+	}
+	m_cSerialPort.GetLBText(m_iSerialPort, m_strSerial);
+	m_strSerial.Format("%s", RemoveSerialInfo(m_strSerial));
+	if (m_ComuPort.OpenPort(byNameComPort(m_strSerial), byIndexBaud(m_iBaudRate), 8, 0, 0) == TRUE) 
+	{
+		strPortname = m_ComuPort.m_sPortName;
+		CString strCom;
+		strCom.Format("COM%d", String2Num(strPortname));
+		SetLastComPort(strCom);
+		m_bUpdateList = TRUE;
+		m_iCurrentMode = DATA_ACQUISITION_MODE;
+	}
+}
+
+
+void CDataAnalysisDlg::OnBnClickedBtnPortClose()
+{
+	if (m_ComuPort.m_bConnected == TRUE) {
+		m_ComuPort.ClosePort();
+		strPortname.Empty();
+
+		m_bUpdateList = FALSE;
+		m_iCurrentMode = DATA_ANALYZE_MODE;
+	}
+}
+
+void CDataAnalysisDlg::Wait(DWORD dwMillisecond) 
+{
+	MSG msg;
+	DWORD dwStart;
+	dwStart = GetTickCount();
+	do {
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) 
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	} while (GetTickCount() - dwStart < dwMillisecond);
+}
+
+CString CDataAnalysisDlg::RemoveSerialInfo(CString str) 
+{
+	CString strReturn;
+	strReturn.Format("%s", str);
+
+	int iSize = strReturn.GetLength();
+	if (iSize != 0) 
+	{
+		int iPos = strReturn.Find('(', 0);
+		if (iPos != -1) strReturn.Format("%s", strReturn.Left(iPos));
+	}
+	return strReturn;
+}
+
+CString CDataAnalysisDlg::byNameComPort(CString str) 
+{
+	CString PortName;
+	int iPort = String2Num(str);
+
+	if (iPort == 0)
+	{
+		PortName.Format("");
+	}
+	else if (iPort <= 4) 
+	{
+		PortName.Format("COM%d", iPort);
+	}
+	else
+	{
+		PortName.Format("\\\\.\\COM%d", iPort);
+	}
+
+	return PortName;
+}
+
+int CDataAnalysisDlg::String2Num(CString str)
+{
+	char *buf = LPSTR(LPCTSTR(str));
+	int iSize = str.GetLength();
+	int iNum = 0;
+
+	if (iSize < 20) 
+	{
+		for (int i = 0; i < iSize; i++) 
+		{
+			if (buf[i] >= '0' && buf[i] <= '9')
+				iNum = iNum * 10 + buf[i] - '0';
+		}
+	}
+	return iNum;
+}
+
+DWORD CDataAnalysisDlg::byIndexBaud(int xBaud) 
+{
+	DWORD dwBaud = CBR_115200;
+	switch (xBaud) 
+	{
+	case 0:		dwBaud = CBR_4800;		break;
+	case 1:		dwBaud = CBR_9600;		break;
+	case 2:		dwBaud = CBR_14400;		break;
+	case 3:		dwBaud = CBR_19200;		break;
+	case 4:		dwBaud = CBR_38400;		break;
+	case 5:		dwBaud = CBR_56000;		break;
+	case 6:		dwBaud = CBR_57600;		break;
+	case 7:		dwBaud = CBR_115200;	break;
+	case 8:     dwBaud = 230400;	    break;
+	case 9:		dwBaud = 460800;        break;
+	case 10:    break;
+	}
+	return dwBaud;
+}
+
+void CDataAnalysisDlg::SetLastComPort(CString strComPort) 
+{
+	if (strComPort == "")return;
+	CString strAddress = "Common";
+	CString strItem = "LastComPort";
+	SetRegRoot_RegistryData(strAddress, strItem, strComPort);
+}
+
+void CDataAnalysisDlg::OnCbnSelchangeSerialPort()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	m_iSerialPort = m_cSerialPort.GetCurSel();
+}
+
+
+void CDataAnalysisDlg::OnCbnSelchangeBaudRate()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	m_iBaudRate = m_cBaudRate.GetCurSel();
+}
+
+void CDataAnalysisDlg::OnSetfocusSerialPort() 
+{
+	//HKEY_LOCAL_MACHINE\HARDWARE\DEVICEMAP\SERIALCOMM 에  시리얼포트 번호들이 등록되어 있음.
+	HKEY hKey;
+
+	//오픈할 레지스터 키에 대한 기본키 이름   
+	//오픈할 레지스터 서브키 이름   
+	//레지스터키에 대한 핸들   
+
+	RegOpenKey(HKEY_LOCAL_MACHINE, TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"), &hKey);
+
+	TCHAR szData[40], szName[200], szBT[200];
+
+	DWORD index = 0, dwSize = 200, dwSize2 = 40, dwType = REG_SZ;
+	CString strCurrentAvailPort;
+
+	m_cSerialPort.ResetContent();
+	CString strLastComPort = GetLastComPort();
+
+	memset(szData, 0x00, sizeof(szData));
+	memset(szName, 0x00, sizeof(szName));
+	memset(szBT, 0x00, sizeof(szBT));
+
+	//hKey - 레지스터키 핸들  
+	//index - 값을 가져올 인덱스.. 다수의 값이 있을 경우 필요   
+	//szName - 항목값이 저장될 배열   
+	//dwSize - 배열의 크기   
+	int iLastComPortIndex = -1;
+	CString str = "";
+
+	while (ERROR_SUCCESS == RegEnumValue(hKey, index, szName, &dwSize, NULL, NULL, NULL, NULL)) {
+
+		//szName-레지터스터 항목의 이름   
+		//dwType-항목의 타입, 여기에서는 널로 끝나는 문자열   
+		//szData-항목값이 저장될 배열   
+		//dwSize2-배열의 크기   
+
+		RegQueryValueEx(hKey, szName, NULL, &dwType, (LPBYTE)szData, &dwSize2);
+		str.Format("%s", szName);
+		str.Format("(%s)", str.Right(str.GetLength() - 8));
+
+		strCurrentAvailPort = CString(szData);
+		if (strCurrentAvailPort == strLastComPort) {
+			iLastComPortIndex = index;
+		}
+
+		memset(szData, 0x00, sizeof(szData));
+		memset(szName, 0x00, sizeof(szName));
+		dwSize = 200;
+		dwSize2 = 40;
+		strCurrentAvailPort += str;
+		m_cSerialPort.AddString(strCurrentAvailPort);
+		index++;
+	}
+	RegCloseKey(hKey);
+
+	m_iConnectedPortCount = 0;
+	for (int i = 0; i < m_cSerialPort.GetCount(); i++) {
+		CString strTemp;
+		m_cSerialPort.GetLBText(i, strTemp);
+		m_iConnectComPort[m_iConnectedPortCount++] = String2Num(strTemp);
+	}
+
+	if (iLastComPortIndex == -1) {
+		if (m_cSerialPort.GetCount() > 0) {
+			m_iSerialPort = 0;
+			m_cSerialPort.SetCurSel(m_iSerialPort);
+			m_cSerialPort.GetLBText(m_iSerialPort, m_strSerial);
+			m_strSerial.Format("%s", RemoveSerialInfo(m_strSerial));
+		}
+	}
+	else {
+		BOOL bFind = FALSE;
+		for (int i = 0; i < m_cSerialPort.GetCount(); i++) {
+			CString strTemp;
+			m_cSerialPort.GetLBText(i, strTemp);
+			if (RemoveSerialInfo(strTemp) == strLastComPort) {
+				m_iSerialPort = i;
+				m_cSerialPort.SetCurSel(i);
+				m_cSerialPort.GetLBText(i, m_strSerial);
+				m_strSerial.Format("%s", RemoveSerialInfo(m_strSerial));
+				bFind = TRUE;
+			}
+		}
+
+		if (!bFind) {
+			m_iSerialPort = 0;
+			m_cSerialPort.SetCurSel(0);
+			m_cSerialPort.GetLBText(0, m_strSerial);
+			m_strSerial.Format("%s", RemoveSerialInfo(m_strSerial));
+		}
+	}
+}
+
+CString CDataAnalysisDlg::GetLastComPort(void) 
+{
+	CString strAddress = "Common";
+	CString strItem = "LastComPort";
+
+	return GetRegRoot_RegistryData(strAddress, strItem);
+}
+
+
+LRESULT  CDataAnalysisDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
+{
+	//UpdateData(TRUE);//받는 데이터 타입을 알기 위해
+	BYTE aByte; //데이터를 저장할 변수 
+	int iSize = (m_ComuPort.m_QueueRead).GetSize(); //포트로 들어온 데이터 갯수
+
+	static int iSequence = 0;
+
+	for (int i = 0; i < iSize; i++) 
+	{	//들어온 갯수 만큼 데이터를 읽어 와 화면에 보여줌
+		(m_ComuPort.m_QueueRead).GetByte(&aByte);//큐에서 데이터 한개를 읽어옴
+
+	}
+	SetDlgItemInt(IDC_Message, iSize);
+	return 1;
 }

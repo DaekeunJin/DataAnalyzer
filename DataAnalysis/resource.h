@@ -5,7 +5,6 @@
 #define IDD_DataAnalysisDlg             102
 #define IDR_MAINFRAME                   128
 #define IDD_SettingDlg                  130
-#define IDC_BUTTON1                     1000
 #define IDC_ReqSettingDlg               1000
 #define IDC_Get_Default_DataSet         1000
 #define IDC_TestButton                  1001
@@ -28,14 +27,19 @@
 #define IDC_Datatype                    1027
 #define IDC_Checksum                    1028
 #define IDC_UseHexa                     1029
+#define IDC_SERIAL_PORT                 1030
+#define IDC_BAUD_RATE                   1031
+#define IDC_BTN_PORT_OPEN               1032
+#define IDC_BTN_PORT_CLOSE              1033
+#define IDC_Message                     1034
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        133
+#define _APS_NEXT_RESOURCE_VALUE        134
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1030
+#define _APS_NEXT_CONTROL_VALUE         1035
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
