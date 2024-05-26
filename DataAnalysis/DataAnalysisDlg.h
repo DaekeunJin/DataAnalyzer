@@ -75,15 +75,12 @@ public:
 	void SetLastComPort(CString strComPort);
 	afx_msg void OnCbnSelchangeSerialPort();
 	afx_msg void OnCbnSelchangeBaudRate();
+	void InitSerialPort();
 	void OnSetfocusSerialPort();
 	CString GetLastComPort(void);
 
 	afx_msg LRESULT OnCommunication(WPARAM wParam, LPARAM lParam);
+	void GetNewDataPacket();
+	CListBox m_LogList;
 };
 
-
-/*
-	CComboBox	m_cSerialPort;
-	CComboBox	m_cSerialPort2;
-	CComboBox	m_cBaudRate;
-*/

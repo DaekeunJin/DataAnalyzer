@@ -31,7 +31,10 @@
 #define IDC_BAUD_RATE                   1031
 #define IDC_BTN_PORT_OPEN               1032
 #define IDC_BTN_PORT_CLOSE              1033
-#define IDC_Message                     1034
+#define IDC_Debug                       1034
+#define IDC_ManualBaud                  1035
+#define IDC_FilterMessage               1036
+#define IDC_Message                     1037
 
 // Next default values for new objects
 // 
@@ -39,7 +42,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        134
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1035
+#define _APS_NEXT_CONTROL_VALUE         1037
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

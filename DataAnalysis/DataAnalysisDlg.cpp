@@ -22,6 +22,7 @@ CDataAnalysisDlg::CDataAnalysisDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_DataAnalysisDlg, pParent)
 	, m_iSerialPort(-1)
 	, m_strSerial(_T(""))
+	, m_iBaudRate(7)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -31,6 +32,7 @@ void CDataAnalysisDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_SERIAL_PORT, m_cSerialPort);
 	DDX_Control(pDX, IDC_BAUD_RATE, m_cBaudRate);
+	DDX_Control(pDX, IDC_Message, m_LogList);
 }
 
 BEGIN_MESSAGE_MAP(CDataAnalysisDlg, CDialogEx)
@@ -60,9 +62,7 @@ BOOL CDataAnalysisDlg::OnInitDialog()
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
     GetDataFormat_fromReg();
-	OnSetfocusSerialPort();
-	m_cBaudRate.SetCurSel(7);
-	m_iBaudRate = 7;
+	InitSerialPort();
 
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
@@ -477,7 +477,7 @@ void CDataAnalysisDlg::OnBnClickedBtnPortOpen()
 	OnBnClickedBtnPortClose();
 
 	CString PortName;
-
+	
 	if (m_ComuPort.m_bConnected == TRUE)
 	{
 		OnBnClickedBtnPortClose();
@@ -597,7 +597,15 @@ DWORD CDataAnalysisDlg::byIndexBaud(int xBaud)
 	case 7:		dwBaud = CBR_115200;	break;
 	case 8:     dwBaud = 230400;	    break;
 	case 9:		dwBaud = 460800;        break;
-	case 10:    break;
+	case 10:    dwBaud = GetDlgItemInt(IDC_ManualBaud);  break;
+	}
+	if (xBaud < 10)
+	{
+		SetDlgItemInt(IDC_ManualBaud, dwBaud);
+		GetDlgItem(IDC_ManualBaud)->EnableWindow(FALSE);
+	}
+	else {
+		GetDlgItem(IDC_ManualBaud)->EnableWindow(TRUE);
 	}
 	return dwBaud;
 }
@@ -612,15 +620,22 @@ void CDataAnalysisDlg::SetLastComPort(CString strComPort)
 
 void CDataAnalysisDlg::OnCbnSelchangeSerialPort()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	m_iSerialPort = m_cSerialPort.GetCurSel();
 }
 
 
 void CDataAnalysisDlg::OnCbnSelchangeBaudRate()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	m_iBaudRate = m_cBaudRate.GetCurSel();
+	byIndexBaud(m_iBaudRate);
+
+}
+
+void CDataAnalysisDlg::InitSerialPort()
+{
+	OnSetfocusSerialPort();
+	m_cBaudRate.SetCurSel(m_iBaudRate);
+	OnCbnSelchangeBaudRate();
 }
 
 void CDataAnalysisDlg::OnSetfocusSerialPort() 
@@ -653,7 +668,8 @@ void CDataAnalysisDlg::OnSetfocusSerialPort()
 	int iLastComPortIndex = -1;
 	CString str = "";
 
-	while (ERROR_SUCCESS == RegEnumValue(hKey, index, szName, &dwSize, NULL, NULL, NULL, NULL)) {
+	while (ERROR_SUCCESS == RegEnumValue(hKey, index, szName, &dwSize, NULL, NULL, NULL, NULL))
+	{
 
 		//szName-레지터스터 항목의 이름   
 		//dwType-항목의 타입, 여기에서는 널로 끝나는 문자열   
@@ -665,7 +681,8 @@ void CDataAnalysisDlg::OnSetfocusSerialPort()
 		str.Format("(%s)", str.Right(str.GetLength() - 8));
 
 		strCurrentAvailPort = CString(szData);
-		if (strCurrentAvailPort == strLastComPort) {
+		if (strCurrentAvailPort == strLastComPort) 
+		{
 			iLastComPortIndex = index;
 		}
 
@@ -680,14 +697,17 @@ void CDataAnalysisDlg::OnSetfocusSerialPort()
 	RegCloseKey(hKey);
 
 	m_iConnectedPortCount = 0;
-	for (int i = 0; i < m_cSerialPort.GetCount(); i++) {
+	for (int i = 0; i < m_cSerialPort.GetCount(); i++)
+	{
 		CString strTemp;
 		m_cSerialPort.GetLBText(i, strTemp);
 		m_iConnectComPort[m_iConnectedPortCount++] = String2Num(strTemp);
 	}
 
-	if (iLastComPortIndex == -1) {
-		if (m_cSerialPort.GetCount() > 0) {
+	if (iLastComPortIndex == -1)
+	{
+		if (m_cSerialPort.GetCount() > 0) 
+		{
 			m_iSerialPort = 0;
 			m_cSerialPort.SetCurSel(m_iSerialPort);
 			m_cSerialPort.GetLBText(m_iSerialPort, m_strSerial);
@@ -696,10 +716,12 @@ void CDataAnalysisDlg::OnSetfocusSerialPort()
 	}
 	else {
 		BOOL bFind = FALSE;
-		for (int i = 0; i < m_cSerialPort.GetCount(); i++) {
+		for (int i = 0; i < m_cSerialPort.GetCount(); i++) 
+		{
 			CString strTemp;
 			m_cSerialPort.GetLBText(i, strTemp);
-			if (RemoveSerialInfo(strTemp) == strLastComPort) {
+			if (RemoveSerialInfo(strTemp) == strLastComPort)
+			{
 				m_iSerialPort = i;
 				m_cSerialPort.SetCurSel(i);
 				m_cSerialPort.GetLBText(i, m_strSerial);
@@ -708,7 +730,8 @@ void CDataAnalysisDlg::OnSetfocusSerialPort()
 			}
 		}
 
-		if (!bFind) {
+		if (!bFind) 
+		{
 			m_iSerialPort = 0;
 			m_cSerialPort.SetCurSel(0);
 			m_cSerialPort.GetLBText(0, m_strSerial);
@@ -732,13 +755,202 @@ LRESULT  CDataAnalysisDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
 	BYTE aByte; //데이터를 저장할 변수 
 	int iSize = (m_ComuPort.m_QueueRead).GetSize(); //포트로 들어온 데이터 갯수
 
-	static int iSequence = 0;
+	static int iSequence = 0; 
+	static int iStep = 0;
+
+	static char cRcvBuffer[300 + 1];
+	static int iRcvBufferIndex = 0;
+
+	static int isGetData = FALSE;
+	static int value = 0;
+	static int order = 1;
+	static int findPeriod = FALSE;
+	static int isMinus = FALSE;
 
 	for (int i = 0; i < iSize; i++) 
 	{	//들어온 갯수 만큼 데이터를 읽어 와 화면에 보여줌
 		(m_ComuPort.m_QueueRead).GetByte(&aByte);//큐에서 데이터 한개를 읽어옴
+		switch (iSequence)
+		{
+			case 	SEQ_HEADER_CHECK_FIRST:
+				iStep = 0;
+				isGetData = FALSE;
+				value = 0;
+				order = 1;
+				findPeriod = FALSE;
+				isMinus = FALSE;
 
+				if (m_Dataset.nHeader > 0)
+				{
+					if (m_Dataset.pHeader[iStep++] == aByte)
+					{
+						// Goto next
+						if (m_Dataset.nHeader == iStep)
+						{
+							if (m_Dataset.bUseGroup)
+							{
+								iSequence = SEQ_GET_GROUP;
+								iStep = 0;
+							}
+							else {
+								iSequence = SEQ_HEDER_CHECK_UNTIL_LAST;
+							}
+						}
+					}
+					break;
+				}
+
+			case 	SEQ_HEDER_CHECK_UNTIL_LAST:
+				if (m_Dataset.nHeader > 0)
+				{
+					if (m_Dataset.pHeader[iStep++] == aByte)
+					{
+						// Goto next
+						if (m_Dataset.nHeader == iStep)
+						{
+							if (m_Dataset.bUseGroup)
+							{
+								iSequence = SEQ_GET_GROUP;
+							}
+							else {
+								iSequence = SEQ_HEDER_CHECK_UNTIL_LAST;
+							}
+							iStep = 0;
+						}
+					}
+					else {
+						iSequence = SEQ_HEADER_CHECK_FIRST;
+					}
+					break;
+				}
+			
+
+			case 	SEQ_GET_GROUP:
+				if (m_Dataset.bUseGroup == TRUE)
+				{
+					m_pData[m_index].group = aByte;
+
+					if (m_Dataset.PacketValueType == 0) 
+					{
+						iSequence = SEQ_TEXT_VALUE_GET;
+					}
+					else
+					{
+						iSequence = SEQ_BIN_VALUE_GET;
+					}
+					break;
+				}
+
+			case	SEQ_TEXT_VALUE_GET:
+				if (m_Dataset.PacketValueType == 0) // TEXT이면
+				{					
+					// FirstDataCheck
+					if (isGetData) {
+						if (aByte >= '0' && aByte <= '9') 
+						{
+							value *= 10;
+							value += (aByte - '0');
+							if (findPeriod) order *= 10;
+						}
+						else if(aByte == '.')
+						{
+							findPeriod = TRUE;
+						}
+						else {
+							if (isMinus) value = -value;
+							
+							if (order == 1)
+								m_pData[m_index].pValue[iStep] = value;
+							else
+								m_pData[m_index].pValue[iStep] = ((double)value) / order;
+
+
+							isGetData = FALSE;
+							value = 0;
+							order = 1;
+							findPeriod = FALSE;
+							isMinus = FALSE;
+
+							if (++iStep == m_Dataset.nValue) 
+							{
+								iSequence = SEQ_WAIT_END;
+							}
+
+							if (aByte == '\n') {
+								GetNewDataPacket();
+								iSequence = SEQ_HEADER_CHECK_FIRST;
+							}
+						}
+					}
+					else {
+						if (aByte >= '0' && aByte <= '9')
+						{
+							isGetData = TRUE;
+							 value = aByte - '0';
+						}
+						else if (aByte == '.')
+						{
+							findPeriod = TRUE;
+							isGetData = TRUE;
+							value = 0;
+						}
+						else if (aByte == '-')
+						{
+							isMinus = TRUE;
+						}
+					}
+					break;
+				}
+
+			case	SEQ_BIN_VALUE_GET:
+				if (m_Dataset.PacketValueType == 1) // Binary이면
+				{
+
+					break;
+				}
+
+			case	 SEQ_GET_TAIL_CHECK_FIRST:
+				if (m_Dataset.nTail > 0) // Binary이면
+				{
+
+					break;
+				}
+
+			case  	SEQ_GET_TAIL_CHECK_UNTIL_LAST:
+				if (m_Dataset.nTail > 0) // Binary이면
+				{
+
+					break;
+				}
+
+
+			case SEQ_WAIT_END:
+				if (aByte == '\n') {
+					GetNewDataPacket();
+					iSequence = SEQ_HEADER_CHECK_FIRST;
+				}
+				break;
+		}
 	}
-	SetDlgItemInt(IDC_Message, iSize);
+	//SetDlgItemInt(IDC_Debug, iSize);
 	return 1;
+}
+
+void CDataAnalysisDlg::GetNewDataPacket()
+{
+	
+	SetDlgItemInt(IDC_Debug, m_index);
+
+	CString str, str1; 
+	str.Format("%c ", m_pData[m_index].group);
+
+	for (int i = 0; i < m_Dataset.nValue; i++) {
+		str1.Format("%.0f ", m_pData[m_index].pValue[i]);
+		str += str1;
+	}
+	
+	int count = m_LogList.GetCount();
+	m_LogList.InsertString(count, str);
+	m_LogList.SetCurSel(count);
+	m_index++;
 }
