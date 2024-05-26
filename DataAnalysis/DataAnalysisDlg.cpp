@@ -898,6 +898,10 @@ LRESULT  CDataAnalysisDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
 						{
 							isMinus = TRUE;
 						}
+						else if (aByte == '\n') {
+							GetNewDataPacket();
+							iSequence = SEQ_HEADER_CHECK_FIRST;
+						}
 					}
 					break;
 				}
@@ -912,17 +916,44 @@ LRESULT  CDataAnalysisDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
 			case	 SEQ_GET_TAIL_CHECK_FIRST:
 				if (m_Dataset.nTail > 0) // Binary이면
 				{
-
+					iStep = 0;
+					if (aByte == m_Dataset.pTail[iStep])
+					{
+						if (++iStep == m_Dataset.nTail) {
+							GetNewDataPacket();
+							iSequence = SEQ_HEADER_CHECK_FIRST;
+						}
+						else
+						{
+							iSequence = SEQ_GET_TAIL_CHECK_UNTIL_LAST;
+						}
+					}
+					else
+					{
+						iSequence = SEQ_HEADER_CHECK_FIRST;
+					}
 					break;
+				}
+				else 
+				{
+					// Binary Value이고 Tail이 없다면 ==> 바로 종료
+					GetNewDataPacket();
+					iSequence = SEQ_HEADER_CHECK_FIRST;
 				}
 
 			case  	SEQ_GET_TAIL_CHECK_UNTIL_LAST:
-				if (m_Dataset.nTail > 0) // Binary이면
+				if (aByte == m_Dataset.pTail[iStep])
 				{
-
-					break;
+					if (++iStep == m_Dataset.nTail)
+					{
+						GetNewDataPacket();
+						iSequence = SEQ_HEADER_CHECK_FIRST;
+					}
 				}
-
+				else {
+					iSequence = SEQ_HEADER_CHECK_FIRST;
+				}
+				break;	
 
 			case SEQ_WAIT_END:
 				if (aByte == '\n') {
