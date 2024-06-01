@@ -968,8 +968,7 @@ LRESULT  CDataAnalysisDlg::OnCommunication(WPARAM wParam, LPARAM lParam)
 }
 
 void CDataAnalysisDlg::GetNewDataPacket()
-{
-	
+{	
 	SetDlgItemInt(IDC_Debug, m_index);
 
 	CString str, str1; 
