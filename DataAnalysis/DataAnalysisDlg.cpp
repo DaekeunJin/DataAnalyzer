@@ -27,6 +27,21 @@ CDataAnalysisDlg::CDataAnalysisDlg(CWnd* pParent /*=nullptr*/)
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
+
+
+CDataAnalysisDlg::~CDataAnalysisDlg()
+{
+	// 동적으로 생성된 CEdit 객체를 삭제합니다.
+	for (CEdit* pEdit : m_editControls)
+	{
+		if (pEdit != nullptr)
+		{
+			delete pEdit;
+		}
+	}
+	m_editControls.clear();
+}
+
 void CDataAnalysisDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
@@ -45,6 +60,8 @@ BEGIN_MESSAGE_MAP(CDataAnalysisDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_PORT_CLOSE, &CDataAnalysisDlg::OnBnClickedBtnPortClose)
 	ON_CBN_SELCHANGE(IDC_SERIAL_PORT, &CDataAnalysisDlg::OnCbnSelchangeSerialPort)
 	ON_CBN_SELCHANGE(IDC_BAUD_RATE, &CDataAnalysisDlg::OnCbnSelchangeBaudRate)
+	ON_WM_LBUTTONDOWN()
+	ON_MESSAGE(WM_POST_INIT, &CDataAnalysisDlg::OnPostInit)
 END_MESSAGE_MAP()
 
 
@@ -64,6 +81,8 @@ BOOL CDataAnalysisDlg::OnInitDialog()
     GetDataFormat_fromReg();
 	InitSerialPort();
 
+	// 대화 상자가 완전히 초기화된 후에 CEdit 컨트롤을 생성하도록 메시지를 보냅니다.
+	PostMessage(WM_POST_INIT);
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -309,6 +328,9 @@ void CDataAnalysisDlg::GetDataFormat_fromReg()
 
 void CDataAnalysisDlg::OnBnClickedTestbutton() 
 {
+	static int n = 2;
+	if (++n > 10) n = 2;
+	CreateEditControls(n);
 }
 
 
@@ -983,4 +1005,78 @@ void CDataAnalysisDlg::GetNewDataPacket()
 	m_LogList.InsertString(count, str);
 	m_LogList.SetCurSel(count);
 	m_index++;
+}
+
+void CDataAnalysisDlg::OnLButtonDown(UINT nFlags, CPoint point) {
+	CString str;
+	str.Format("point %d   %d", point.x, point.y);
+	SetDlgItemText(IDC_Debug, str);
+
+	CDialogEx::OnLButtonDown(nFlags, point);
+}
+
+void CDataAnalysisDlg::CreateEditControls(int count) {
+
+	//설명
+	//	WS_CHILD : CEdit 컨트롤을 자식 윈도우로 생성합니다.
+	//	WS_VISIBLE : 컨트롤이 생성될 때 바로 표시됩니다.
+	//	WS_BORDER : 컨트롤에 테두리를 추가합니다.
+	//	ES_LEFT : 텍스트를 왼쪽 정렬합니다.
+	//	ES_MULTILINE : 여러 줄의 텍스트를 입력할 수 있습니다.
+	//	ES_AUTOVSCROLL : 텍스트가 컨트롤의 높이를 초과할 경우 자동으로 수직 스크롤을 추가합니다.
+	//	이 예제에서는 WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL 스타일을 사용하여 CEdit 컨트롤을 생성합니다.이를 통해 여러 줄의 텍스트를 입력할 수 있고, 텍스트가 컨트롤의 높이를 초과할 경우 자동으로 수직 스크롤이 추가됩니다.
+
+	//	추가 스타일
+	//	ES_CENTER : 텍스트를 가운데 정렬합니다.
+	//	ES_RIGHT : 텍스트를 오른쪽 정렬합니다.
+	//	ES_PASSWORD : 입력된 텍스트를 암호화된 문자로 표시합니다.
+	//	ES_READONLY : 컨트롤을 읽기 전용으로 설정합니다.
+	//	ES_AUTOHSCROLL : 텍스트가 컨트롤의 너비를 초과할 경우 자동으로 수평 스크롤을 추가합니다.
+	//	ES_WANTRETURN : 여러 줄 입력 모드에서 Enter 키를 누르면 줄 바꿈을 삽입합니다.
+
+	// 기존에 생성된 CEdit 객체를 삭제합니다.
+	for (CEdit* pEdit : m_editControls)
+	{
+		if (pEdit != nullptr)
+		{
+			pEdit->DestroyWindow();
+			delete pEdit;
+		}
+	}
+	m_editControls.clear();
+
+	// 새로운 CEdit 객체를 생성하고 초기화합니다.
+	for (int i = 0; i < count; ++i)
+	{
+		CEdit* pEdit = new CEdit();
+		if (pEdit != nullptr)
+		{
+			// CEdit 컨트롤을 동적으로 생성합니다.
+			BOOL bSuccess = pEdit->Create(WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT,
+				CRect(10, 10 + i * 40, 210, 40 + i * 40), this, 1000 + i);
+
+			if (bSuccess)
+			{
+				// CEdit 컨트롤에 텍스트 설정
+				CString text;
+				text.Format(_T("Edit Control %d"), i + 1);
+				pEdit->SetWindowText(text);
+
+				// 벡터에 추가
+				m_editControls.push_back(pEdit);
+			}
+			else
+			{
+				AfxMessageBox(_T("Failed to create CEdit control"));
+				delete pEdit;
+			}
+		}
+	}
+}
+
+LRESULT CDataAnalysisDlg::OnPostInit(WPARAM wParam, LPARAM lParam)
+{
+	// 원하는 개수만큼 CEdit 컨트롤을 생성합니다.
+	CreateEditControls(5);
+	return 0;
 }

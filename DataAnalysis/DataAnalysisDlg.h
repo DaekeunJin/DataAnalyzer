@@ -8,6 +8,7 @@
 #include "DataFormat.h"
 #include "CommThread.h"
 #include "resource.h"
+#include <vector>
 
 
 #define DATA_ACQUISITION_MODE	1
@@ -30,7 +31,16 @@ private:
 	int m_iConnectedPortCount;
 	int m_iConnectComPort[MAX_COM_PORT_SIZE];
 
+	std::vector<CEdit*> m_editControls;  // CEdit 객체를 관리할 벡터
+	void CreateEditControls(int count);  // CEdit 컨트롤을 생성하는 함수
+		
+	afx_msg LRESULT OnPostInit(WPARAM wParam, LPARAM lParam);  // 사용자 정의 메시지 핸들러
+	static const UINT WM_POST_INIT = WM_USER + 2;  // 사용자 정의 메시지
+
 public:
+	virtual ~CDataAnalysisDlg();
+
+
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);
 	HICON m_hIcon;
@@ -82,5 +92,7 @@ public:
 	afx_msg LRESULT OnCommunication(WPARAM wParam, LPARAM lParam);
 	void GetNewDataPacket();
 	CListBox m_LogList;
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+
 };
 
